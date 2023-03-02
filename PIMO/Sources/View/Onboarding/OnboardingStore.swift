@@ -11,6 +11,7 @@ import ComposableArchitecture
 struct OnboardingStore: ReducerProtocol {
     struct State: Equatable {
         @BindingState var pageType: OnboardingPageType = .one
+        @BindingState var showLoginView = false
     }
 
     enum Action: BindableAction, Equatable {
@@ -24,7 +25,7 @@ struct OnboardingStore: ReducerProtocol {
         Reduce { state, action in
             switch action {
             case .startButtonTapped:
-                print("action")
+                state.showLoginView = true
                 return .none
             case .skipButtonTapped:
                 print("skip")

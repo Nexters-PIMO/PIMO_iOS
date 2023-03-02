@@ -11,31 +11,46 @@ import SwiftUI
 import ComposableArchitecture
 
 struct OnboardingView: View {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     let store: StoreOf<OnboardingStore>
 
     var body: some View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
-            ZStack {
-                TabView(selection: viewStore.binding(\.$pageType)) {
-                    ForEach(OnboardingPageType.allCases, id: \.self) {
-                        OnboardingDescriptionView(type: $0)
-                            .tag($0)
-                    }
-                }
-                .ignoresSafeArea()
-                .tabViewStyle(.page(indexDisplayMode: .never))
-
+            NavigationStack {
                 ZStack {
-                    if viewStore.pageType != OnboardingPageType.allCases.last {
-                        skipButton(viewStore: viewStore)
-
-                        indexDisplay(viewStore: viewStore)
-                    } else {
-                        startButton(viewStore: viewStore)
+                    TabView(selection: viewStore.binding(\.$pageType)) {
+                        ForEach(OnboardingPageType.allCases, id: \.self) {
+                            OnboardingDescriptionView(type: $0)
+                                .tag($0)
+                        }
                     }
+                    .ignoresSafeArea()
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+
+                    ZStack {
+                        if viewStore.pageType != OnboardingPageType.allCases.last {
+                            skipButton(viewStore: viewStore)
+
+                            indexDisplay(viewStore: viewStore)
+                        } else {
+                            NavigationLink { } label: {
+                                startButton(viewStore: viewStore)
+                            }
+                        }
+                    }
+                    .navigationDestination(isPresented: viewStore.binding(\.$showLoginView)) {
+                        LoginView(
+                            store: appDelegate.store.scope(
+                                state: \.loginState,
+                                action: AppStore.Action.login
+                            )
+                        )
+                    }
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: viewStore.pageType)
+                    
                 }
-                .transition(.opacity)
-                .animation(.easeInOut, value: viewStore.pageType)
             }
         }
     }
