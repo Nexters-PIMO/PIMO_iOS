@@ -9,8 +9,7 @@
 import Foundation
 
 struct NetworkEnvironment {
-    #warning("baseURL 선언 필요")
     public static var baseURL: String {
-        return ""
+        return "http://175.45.206.179"
     }
 }

@@ -20,7 +20,14 @@ struct LoginView: View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             NavigationStack {
                 ZStack {
-                    Color.blue // TODO: 추후 이미지로 대체되야 함
+                    Image(uiImage: PIMOAsset.Assets.loginBackground.image)
+                        .resizable()
+                        .renderingMode(.original)
+                        .scaledToFill()
+                        .frame(
+                            width: sceneDelegate.window?.bounds.width ?? 0,
+                            height: sceneDelegate.window?.bounds.height ?? 0
+                        )
                     
                     VStack {
                         Spacer()
@@ -51,7 +58,7 @@ struct LoginView: View {
                         .frame(width: 360, height: 54)
                         .padding(.top, 0)
                         .padding(.bottom, 18)
-                            
+                        
                         AppleLoginButton(
                             viewStore: viewStore,
                             window: sceneDelegate.window!,
@@ -71,9 +78,10 @@ struct LoginView: View {
                     }
                 }
             }
+            .ignoresSafeArea()
+            .navigationBarBackButtonHidden(true)
             .disableSwipeBack()
         }
-        .ignoresSafeArea()
     }
 }
 
