@@ -23,3 +23,14 @@ struct AppleToken: Decodable, Equatable {
         case refreshToken = "refresh_token"
     }
 }
+
+struct EncodeLogin: Decodable, Equatable {
+    let message: String
+    let status: String
+    let data: EncodedToken?
+}
+
+struct EncodedToken: Decodable, Equatable {
+    let provider: String
+    let accessToken: String
+}

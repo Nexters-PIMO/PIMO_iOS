@@ -26,8 +26,10 @@ struct LoginStore: ReducerProtocol {
         case tappedKakaoLoginButton
         case tappedAppleLoginButton(String)
         case showAlert
+        case showToast
         case tappedAlertOKButton
         case tappedAppleLoginButtonDone(Result<AppleLogin, NetworkError>)
+        case encodeTokenDone(Result<EncodeLogin, NetworkError>)
     }
     
     @Dependency(\.loginClient) var loginClient
@@ -43,19 +45,24 @@ struct LoginStore: ReducerProtocol {
                 
                 state.appleIdentityToken = token
                 
-                return loginClient.appleLogin(token)
+                return loginClient.getAppleLoginToken(token)
                     .map { result in
                         return Action.tappedAppleLoginButtonDone(result)
                     }
             case .tappedAppleLoginButtonDone(let result):
                 switch result {
                 case .success(let appleLogin):
-                    dump(appleLogin)
-                case .failure(let error):
-                    dump(error)
+                    guard let accessToken = appleLogin.data?.accessToken else {
+                        return .none
+                    }
+                    
+                    return loginClient.encodeAppleLoginToken(accessToken)
+                        .map { result in
+                            return Action.encodeTokenDone(result)
+                        }
+                case .failure:
+                    return .init(value: Action.showToast)
                 }
-                
-                return .none
             case .tappedKakaoLoginButton:
                 var errorMessage = ""
                 var isSignIn = false
@@ -84,6 +91,20 @@ struct LoginStore: ReducerProtocol {
                 
                 state.errorMessage = errorMessage
                 state.isSignIn = isSignIn
+                
+                return .none
+            case .encodeTokenDone(let result):
+                switch result {
+                case .success(let encodeLogin):
+                    guard let encodedAccessToken = encodeLogin.data?.accessToken else {
+                        return .none
+                    }
+                    
+                    let memberToken = MemberToken(accessToken: encodedAccessToken, refreshToken: nil)
+                    UserUtill.shared.setUserDefaults(key: .token, value: memberToken)
+                case .failure:
+                    return .init(value: Action.showToast)
+                }
                 
                 return .none
             case .showAlert:
