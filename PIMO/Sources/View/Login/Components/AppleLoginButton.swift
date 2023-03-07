@@ -16,7 +16,7 @@ struct AppleLoginButton: UIViewRepresentable {
     let viewStore: ViewStore<LoginStore.State, LoginStore.Action>
     let window: UIWindow
     let title: String
-    let action: () -> Void
+    let action: (String) -> Void
 
     var appleLoginButton = UIButton()
 
@@ -35,8 +35,6 @@ struct AppleLoginButton: UIViewRepresentable {
 
         @objc func doAction(_ sender: Any) {
             requestAppleLogin()
-            
-            self.appleLoginButton.action()
         }
         
         private func requestAppleLogin() {
@@ -84,7 +82,6 @@ extension AppleLoginButton.Coordinator: ASAuthorizationControllerDelegate {
       case let appleIDCredential as ASAuthorizationAppleIDCredential:
           let userID = appleIDCredential.user
           let provider = ASAuthorizationAppleIDProvider()
-          let userName = appleIDCredential.fullName?.formatted() // TODO: 필요없는 경우 제거
           
           provider.getCredentialState(forUserID: userID) { [weak self] credentialState, _ in
               guard let self else { return }
@@ -99,8 +96,8 @@ extension AppleLoginButton.Coordinator: ASAuthorizationControllerDelegate {
                         let identityToken = String(data: identityTokenData, encoding: .utf8) else {
                       return
                   }
-                  UIPasteboard.general.string = identityToken // TODO: 테스트 이후 제거 예정
                   
+                  self.appleLoginButton.action(identityToken)
               case .notFound, .revoked, .transferred:
                   #if DEBUG
                   print("Apple Login Fail")

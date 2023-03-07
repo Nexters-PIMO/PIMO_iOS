@@ -12,7 +12,7 @@ import Foundation
 import ComposableArchitecture
 
 struct LoginClient {
-    let appleLogin: (Int) -> EffectPublisher<AppleLogin, Error>
+    let appleLogin: (String) -> EffectPublisher<Result<AppleLogin, NetworkError>, Never>
 }
 
 extension DependencyValues {
@@ -25,10 +25,12 @@ extension DependencyValues {
 extension LoginClient: DependencyKey {
     static let liveValue = Self.init { identityToken in
         let request = AppleLoginRequest(parameters: [
-            "identityToken": identityToken
+            "state": "apple",
+            "code": identityToken
         ])
+        let effect = BaseNetwork.shared.request(api: request, isInterceptive: false)
+            .catchToEffect()
 
-        return BaseNetwork.shared.request(api: request, isInterceptive: false)
-            .eraseToEffect()
+        return effect
     }
 }

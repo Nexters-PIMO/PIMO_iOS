@@ -63,8 +63,10 @@ struct LoginView: View {
                             viewStore: viewStore,
                             window: sceneDelegate.window!,
                             title: "Apple로 로그인",
-                            action: {
-                                viewStore.send(.tappedAppleLoginButton)
+                            action: { token in
+                                DispatchQueue.main.async {
+                                    viewStore.send(.tappedAppleLoginButton(token))
+                                }
                             })
                         .alert("로그인이 실패했습니다", isPresented: viewStore.$isAlertShowing) {
                             Button("확인", role: .cancel) {

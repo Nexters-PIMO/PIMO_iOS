@@ -14,11 +14,11 @@ struct AppleLoginRequest: Requestable {
     typealias Response = AppleLogin
 
     var path: String {
-        return "/"
+        return "/login/token"
     }
     
     var method: Alamofire.HTTPMethod {
-        return .post
+        return .get
     }
 
     var parameters: Parameters

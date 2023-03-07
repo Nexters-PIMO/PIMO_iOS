@@ -7,6 +7,7 @@
 //
 
 import AuthenticationServices
+import Combine
 import Foundation
 
 import ComposableArchitecture
@@ -17,14 +18,16 @@ struct LoginStore: ReducerProtocol {
         @BindingState var isAlertShowing = false
         var isSignIn = false
         var errorMessage = ""
+        var appleIdentityToken = ""
     }
     
     enum Action: BindableAction, Equatable {
         case binding(BindingAction<State>)
         case tappedKakaoLoginButton
-        case tappedAppleLoginButton
+        case tappedAppleLoginButton(String)
         case showAlert
         case tappedAlertOKButton
+        case tappedAppleLoginButtonDone(Result<AppleLogin, NetworkError>)
     }
     
     @Dependency(\.loginClient) var loginClient
@@ -33,7 +36,25 @@ struct LoginStore: ReducerProtocol {
         BindingReducer()
         Reduce { state, action in
             switch action {
-            case .tappedAppleLoginButton:
+            case .tappedAppleLoginButton(let token):
+                guard token != "" else {
+                    return .none
+                }
+                
+                state.appleIdentityToken = token
+                
+                return loginClient.appleLogin(token)
+                    .map { result in
+                        return Action.tappedAppleLoginButtonDone(result)
+                    }
+            case .tappedAppleLoginButtonDone(let result):
+                switch result {
+                case .success(let appleLogin):
+                    dump(appleLogin)
+                case .failure(let error):
+                    dump(error)
+                }
+                
                 return .none
             case .tappedKakaoLoginButton:
                 var errorMessage = ""

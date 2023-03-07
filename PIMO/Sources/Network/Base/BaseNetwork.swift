@@ -12,7 +12,7 @@ import Foundation
 import Alamofire
 
 protocol BaseNetworkInterface {
-    func request<API: Requestable>(api: API, isInterceptive: Bool) -> AnyPublisher<API.Response, Error>
+    func request<API: Requestable>(api: API, isInterceptive: Bool) -> AnyPublisher<API.Response, NetworkError>
 }
 
 struct BaseNetwork: BaseNetworkInterface {
@@ -31,7 +31,7 @@ struct BaseNetwork: BaseNetworkInterface {
         self.session = Session(configuration: configuration)
     }
 
-    func request<API: Requestable>(api: API, isInterceptive: Bool) -> AnyPublisher<API.Response, Error> {
+    func request<API: Requestable>(api: API, isInterceptive: Bool) -> AnyPublisher<API.Response, NetworkError> {
         session.request(api, interceptor: isInterceptive ? interceptorAuthenticator : nil)
             .validate(statusCode: 200..<500)
             .publishDecodable(type: API.Response.self)
@@ -44,6 +44,12 @@ struct BaseNetwork: BaseNetworkInterface {
             })
             .subscribe(on: DispatchQueue.global())
             .receive(on: DispatchQueue.main)
+            .mapError({ error in
+                switch error {
+                default:
+                    return error as? NetworkError ?? NetworkError(errorType: .nilValue)
+                }
+            })
             .eraseToAnyPublisher()
     }
 }

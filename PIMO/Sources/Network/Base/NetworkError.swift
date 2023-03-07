@@ -10,12 +10,16 @@ import Foundation
 
 import Alamofire
 
-struct NetworkError: Error {
+struct NetworkError: Error, Equatable {
     var initialError: AFError?
     let errorType: NetworkErrorType?
+    
+    static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+        lhs.errorType == rhs.errorType
+    }
 }
 
-enum NetworkErrorType {
+enum NetworkErrorType: Equatable {
     case tokenExpired
     case nilValue
 }

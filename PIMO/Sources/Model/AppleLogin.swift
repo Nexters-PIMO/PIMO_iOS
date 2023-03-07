@@ -8,8 +8,18 @@
 
 import Foundation
 
-struct AppleLogin: Codable {
-    let email: String
-    let name: String
-    let identifier: String
+struct AppleLogin: Decodable, Equatable {
+    let message: String
+    let status: String
+    let data: AppleToken?
+}
+
+struct AppleToken: Decodable, Equatable {
+    let accessToken: String
+    let refreshToken: String
+    
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case refreshToken = "refresh_token"
+    }
 }
